@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "express": "^4.17.1",
+    "uuid": "^8.3.2"
+  },
+  "name": "finapi",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js"
+  },
+  "repository": "https://github.com/GuilhermeMacielJs/finapi.git",
+  "author": "Guilherme Maciel <67983309+GuilhermeMacielJs@users.noreply.github.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^2.0.12"
+  }
+}
