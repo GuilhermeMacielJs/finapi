@@ -5,8 +5,9 @@ const app = express()
 
 app.use(express.json())
 
-//Middleware
+const customers = []
 
+//Middleware
 function verifyIfExistsAccountCPF(req, res, next) {
     const { cpf } = req.headers
     const customer = customers.find((customer) => customer.cpf === cpf)
@@ -20,6 +21,7 @@ function verifyIfExistsAccountCPF(req, res, next) {
     return next()
 }
 
+//Utils
 function getBalance (statement){
     const balance = statement.reduce((acc, operation)=>{
         if(operation.type === 'credit'){
@@ -33,9 +35,9 @@ function getBalance (statement){
     return balance
 }
 
-const customers = []
+//Criação, alteração e listagem de contas
 app.post('/account', (req, res) => {
-    const { cpf, name } = req.body
+    const { name, cpf } = req.body
     const customerAlreadyExists = customers.some((customer) => customer.cpf === cpf)
     if (customerAlreadyExists) {
         return res.status(400).json({ error: "Customer already exists!" })
@@ -48,20 +50,41 @@ app.post('/account', (req, res) => {
         statement: [],
     })
 
-    return res.status(201).json({ "cpf": customers })
+    return res.status(201).json(customers)
 
 })
 
+app.put('/account', verifyIfExistsAccountCPF, (req, res) =>{
+    const {customer} = req
+    const {name} = req.body
+
+    customer.name = name
+    return res.status(201).json(customer.name)
+
+})
+
+app.get('/account', verifyIfExistsAccountCPF, (req, res) =>{
+    const {customer} = req
+    return res.json(customer)
+})
+
+
+//Listagem do strato
 app.get('/statement', verifyIfExistsAccountCPF, (req, res) => {
-    try {
         const { customer } = req
         return res.json(customer.statement)
-    } catch (error) {
-        return res.json(error)
-    }
+})
+app.get('/statement/date', verifyIfExistsAccountCPF, (req, res) => {
+    const {customer} = req
+    const {date} = req.query
+    
+    const dateFormat = new Date(date+" 00:00");
+    const statement = customer.statement.filter((statement) => statement.created_at.toDateString() === new Date(dateFormat).toDateString())
 
+    return res.json(statement)
 })
 
+//Ações conta
 app.post('/deposit', verifyIfExistsAccountCPF, (req, res) => {
     const { customer } = req
     const { description, amount } = req.body
@@ -77,7 +100,6 @@ app.post('/deposit', verifyIfExistsAccountCPF, (req, res) => {
 
     return res.status(201).json(customer)
 })
-
 app.post('/withdraw', verifyIfExistsAccountCPF, (req, res) => {
     const { customer } = req
     const {amount} = req.body
@@ -96,16 +118,5 @@ app.post('/withdraw', verifyIfExistsAccountCPF, (req, res) => {
     customer.statement.push(statementOperationWithDraw)
     return res.status(201).json(customer.statement)
 })
-
-app.get('/statement/date', verifyIfExistsAccountCPF, (req, res) => {
-    const {customer} = req
-    const {date} = req.query
-    
-    const dateFormat = new Date(date+" 00:00");
-    const statement = customer.statement.filter((statement) => statement.created_at.toDateString() === new Date(dateFormat).toDateString())
-
-    return res.json(statement)
-})
-
 
 app.listen(8080)
