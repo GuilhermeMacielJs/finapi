@@ -68,6 +68,15 @@ app.get('/account', verifyIfExistsAccountCPF, (req, res) =>{
     return res.json(customer)
 })
 
+//Exclusão de conta
+app.delete('/account', verifyIfExistsAccountCPF , (req,res) =>{
+    const {customer} = req
+    const indexCustomer = customers.findIndex((customerIndex) => customerIndex.cpf === customer.cpf)
+    customers.splice(indexCustomer,1)
+
+    return res.status(200).json(customers)
+})
+
 
 //Listagem do strato
 app.get('/statement', verifyIfExistsAccountCPF, (req, res) => {
@@ -82,6 +91,14 @@ app.get('/statement/date', verifyIfExistsAccountCPF, (req, res) => {
     const statement = customer.statement.filter((statement) => statement.created_at.toDateString() === new Date(dateFormat).toDateString())
 
     return res.json(statement)
+})
+
+//Listagem do balanço
+app.get('/balance', verifyIfExistsAccountCPF, (req, res) =>{
+    const {customer} = req
+
+    const balance = getBalance(customer.statement)
+    return res.status(200).json(balance)
 })
 
 //Ações conta
@@ -118,5 +135,4 @@ app.post('/withdraw', verifyIfExistsAccountCPF, (req, res) => {
     customer.statement.push(statementOperationWithDraw)
     return res.status(201).json(customer.statement)
 })
-
 app.listen(8080)
